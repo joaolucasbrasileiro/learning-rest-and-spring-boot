@@ -1,7 +1,7 @@
 package com.lucasbrasileiro.exception.handler;
 
 import com.lucasbrasileiro.exception.ExceptionResponse;
-import com.lucasbrasileiro.exception.UnsupportedMathException;
+import com.lucasbrasileiro.exception.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -26,14 +26,14 @@ public class CustomEntityResponseHandler extends ResponseEntityExceptionHandler 
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     };
 
-    @ExceptionHandler(UnsupportedMathException.class)
-    public final ResponseEntity<ExceptionResponse> handleBadRequestExceptions (UnsupportedMathException ex, WebRequest request) {
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public final ResponseEntity<ExceptionResponse> handleNotFoundExceptions (ResourceNotFoundException ex, WebRequest request) {
         ExceptionResponse response = new ExceptionResponse(
                 new Date(),
                 ex.getMessage(),
                 request.getDescription(false)
         );
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
 
 }
