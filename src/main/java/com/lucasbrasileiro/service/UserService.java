@@ -1,6 +1,7 @@
 package com.lucasbrasileiro.service;
 
 
+import com.lucasbrasileiro.controller.UserController;
 import com.lucasbrasileiro.data.dto.v1.UserDTO;
 import com.lucasbrasileiro.exception.ResourceNotFoundException;
 import static com.lucasbrasileiro.mapper.ObjectMapper.parseListObjects;
@@ -11,6 +12,9 @@ import com.lucasbrasileiro.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,21 +30,31 @@ public class UserService {
 
     public List<UserDTO> findAll() {
         logger.info("Find All Users");
-        return parseListObjects(userRepository.findAll(),  UserDTO.class);
+        var users = parseListObjects(userRepository.findAll(),  UserDTO.class);
+
+        users.forEach(this::addHateoasLinks);
+        return users;
     }
 
     public UserDTO findById(Long id) {
         logger.info("Find User by ID {}", id);
         var entity = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User não encontrado!"));
-        return parseObject(entity, UserDTO.class);
+        var dto = parseObject(entity, UserDTO.class);
+
+        addHateoasLinks(dto);
+
+        return dto;
     }
 
     public UserDTO create(UserDTO user) {
         logger.info("Create User {}", user);
         var entity = parseObject(user, User.class);
 
-        return parseObject(userRepository.save(entity), UserDTO.class);
+        var dto = parseObject(userRepository.save(entity), UserDTO.class);
+        addHateoasLinks(dto);
+
+        return dto;
     }
 
     public void delete (Long id) {
@@ -60,6 +74,18 @@ public class UserService {
         entity.setEmail(user.getEmail());
         entity.setGender(user.getGender());
 
-        return parseObject(userRepository.save(entity), UserDTO.class);
+        var dto = parseObject(userRepository.save(entity), UserDTO.class);
+        addHateoasLinks(dto);
+
+        return dto;
+    }
+
+    private void addHateoasLinks(UserDTO dto) {
+        dto.add(linkTo(methodOn(UserController.class).findById(dto.getId())).withSelfRel().withType("GET"));
+        dto.add(linkTo(methodOn(UserController.class).findAll()).withRel("findAll").withType("GET"));
+        dto.add(linkTo(methodOn(UserController.class).create(dto)).withRel("create").withType("POST"));
+        dto.add(linkTo(methodOn(UserController.class).update(dto)).withRel("update").withType("PUT"));
+        dto.add(linkTo(methodOn(UserController.class).delete(dto.getId())).withRel("delete").withType("DELETE"));
+
     }
 }
