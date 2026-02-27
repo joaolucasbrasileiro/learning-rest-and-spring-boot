@@ -3,6 +3,7 @@ package com.lucasbrasileiro.service;
 
 import com.lucasbrasileiro.controller.UserController;
 import com.lucasbrasileiro.data.dto.v1.UserDTO;
+import com.lucasbrasileiro.exception.RequiredObjectIsNullException;
 import com.lucasbrasileiro.exception.ResourceNotFoundException;
 import static com.lucasbrasileiro.mapper.ObjectMapper.parseListObjects;
 import static com.lucasbrasileiro.mapper.ObjectMapper.parseObject;
@@ -48,6 +49,10 @@ public class UserService {
     }
 
     public UserDTO create(UserDTO user) {
+
+        if (user == null) throw new RequiredObjectIsNullException();
+
+
         logger.info("Create User {}", user);
         var entity = parseObject(user, User.class);
 
@@ -65,6 +70,9 @@ public class UserService {
     }
 
     public UserDTO update (UserDTO user) {
+
+        if (user == null) throw new RequiredObjectIsNullException();
+
         logger.info("Update User {}", user);
         User entity = userRepository.findById(user.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("User não encontrado!"));
